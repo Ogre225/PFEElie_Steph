@@ -1,0 +1,5 @@
+*.pth
+env/
+models_weights/
+logs/
+__pycache__/
