@@ -1,7 +1,7 @@
 # Modèle Drunet
 import torch
 import torch.nn as nn
-import basicblock as B
+import model.basicblock as B
 import numpy as np
 #from utils import test_onesplit, test_pad
 
@@ -46,7 +46,8 @@ class UNetRes(nn.Module):
         self.learning_rate = learning_rate
 
 
-    def forward(self, x0):
+    def forward(self, x0, noise_level_map):
+        x0 = torch.cat((x0, noise_level_map), dim=1)
         x1 = self.m_head(x0)
         x2 = self.m_down1(x1)
         x3 = self.m_down2(x2)

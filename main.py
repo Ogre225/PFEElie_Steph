@@ -1,20 +1,20 @@
 from model.scunet import SCUNet
-from model.drunet import UNet
+from model.drunet import UNetRes
 from train import train_drunet, train_scunet
 from utils import *
 
-def main(model_name,dataloader):
+def main(model_name, dataloader):
     # Define the model
     if model_name == 'SCUNET':    
         model = SCUNet(in_nc=1)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_scunet(model,dataloader,device=device,iterations=200000)
+        model = train_scunet(model, dataloader, device=device, iterations=200000)
 
 
     else:
-        model = UNet()
+        model = UNetRes(in_nc=2)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_drunet(model, dataloader, device=device, iterations=200000)
+        model = train_drunet(model, dataloader, device=device, iterations=10000, save_dir = "C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training")
 
 
 if __name__ == '__main__':
@@ -31,12 +31,12 @@ if __name__ == '__main__':
     patch_size = 128
     noise_level_range = [0, 50]
 
-    #batch_size=16
+    batch_size=16
     #batch_size=16
 
     
     dataset = DenoisingDataset(image_paths, patch_size, noise_level_range)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    model_name = 'SCUNET'
-    main(model_name,dataloader)
+    model_name = 'DRUUNET'
+    main(model_name, dataloader)
