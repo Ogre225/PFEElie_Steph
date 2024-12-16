@@ -8,13 +8,13 @@ def main(model_name, dataloader):
     if model_name == 'SCUNET':    
         model = SCUNet(in_nc=1)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_scunet(model, dataloader, device=device, iterations=200000)
+        model = train_scunet(model, dataloader, device=device, iterations=10)
 
 
     else:
         model = UNetRes(in_nc=2)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_drunet(model, dataloader, device=device, iterations=10000, save_dir = "C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training")
+        model = train_drunet(model, dataloader, device=device, iterations=10, save_dir = "C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training")
 
 
 if __name__ == '__main__':
@@ -38,5 +38,5 @@ if __name__ == '__main__':
     dataset = DenoisingDataset(image_paths, patch_size, noise_level_range)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
-    model_name = 'DRUUNET'
+    model_name = 'DRUNET'
     main(model_name, dataloader)

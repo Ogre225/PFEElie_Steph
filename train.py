@@ -15,7 +15,7 @@ def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda',
 
     for step in range(1, iterations + 1):
         # Select a random batch
-        noisy_imgs, clean_imgs = random.choice(dataloader_list)
+        noisy_imgs, clean_imgs, _ = random.choice(dataloader_list)
        
         noisy_imgs = noisy_imgs.to(torch.float32).to(device)
         clean_imgs = clean_imgs.to(torch.float32).to(device)
@@ -88,7 +88,7 @@ def train_drunet(model, dataloader, lr=0.0001, iterations=500000, device='cuda',
             print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f}")
 
         if step % 5000 == 0:
-            checkpoint_path = os.path.join(save_dir, f"scunet_iter_{step}.pth")
+            checkpoint_path = os.path.join(save_dir, f"drunet_iter_{step}.pth")
             torch.save(model.state_dict(), checkpoint_path)
             print(f"Weights saved at iteration {step} to {checkpoint_path}")
 
