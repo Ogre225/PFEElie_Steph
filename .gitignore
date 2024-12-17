@@ -3,3 +3,7 @@ env/
 models_weights/
 logs/
 __pycache__/
+*.zip
+*ipynb
+BDS400/
+set12/

@@ -13,44 +13,6 @@ import torch
 import math
 
 
-def test_pad(model, L, modulo=16):
-    h, w = L.size()[-2:]
-    paddingBottom = int(np.ceil(h/modulo)*modulo-h)
-    paddingRight = int(np.ceil(w/modulo)*modulo-w)
-    L = torch.nn.ReplicationPad2d((0, paddingRight, 0, paddingBottom))(L)
-    E = model(L)
-    E = E[..., :h, :w]
-    return E
-
-
-def test_onesplit(model, L, refield=32, min_size=256, sf=1, modulo=1):
-    '''
-    model:
-    L: input Low-quality image
-    refield: effective receptive filed of the network, 32 is enough
-    min_size: min_sizeXmin_size image, e.g., 256X256 image
-    sf: scale factor for super-resolution, otherwise 1
-    modulo: 1 if split
-    '''
-    h, w = L.size()[-2:]
-
-    top = slice(0, (h//2//refield+1)*refield)
-    bottom = slice(h - (h//2//refield+1)*refield, h)
-    left = slice(0, (w//2//refield+1)*refield)
-    right = slice(w - (w//2//refield+1)*refield, w)
-    Ls = [L[..., top, left], L[..., top, right], L[..., bottom, left], L[..., bottom, right]]
-    Es = [model(Ls[i]) for i in range(4)]
-    b, c = Es[0].size()[:2]
-    E = torch.zeros(b, c, sf * h, sf * w).type_as(L)
-    E[..., :h//2*sf, :w//2*sf] = Es[0][..., :h//2*sf, :w//2*sf]
-    E[..., :h//2*sf, w//2*sf:w*sf] = Es[1][..., :h//2*sf, (-w + w//2)*sf:]
-    E[..., h//2*sf:h*sf, :w//2*sf] = Es[2][..., (-h + h//2)*sf:, :w//2*sf]
-    E[..., h//2*sf:h*sf, w//2*sf:w*sf] = Es[3][..., (-h + h//2)*sf:, (-w + w//2)*sf:]
-    return E
-
-
-
-
 
 # Load dataset
 def load_image_paths(dataset_paths):
@@ -61,6 +23,8 @@ def load_image_paths(dataset_paths):
                 if file.endswith(('.png', '.jpg', '.jpeg')):
                     image_paths.append(os.path.join(root, file))
     return image_paths
+
+
 
 
 # Custom Dataset class to load and apply noise to grayscale images
@@ -80,6 +44,12 @@ class DenoisingDataset(Dataset):
 
         # Random crop
         h, w = img.shape
+        if h<128 or w<128:
+
+            print(h)
+            print(w)
+
+    
         top = np.random.randint(0, h - self.patch_size)
         left = np.random.randint(0, w - self.patch_size)
         img_clean = img[top:top + self.patch_size, left:left + self.patch_size]
@@ -92,7 +62,7 @@ class DenoisingDataset(Dataset):
         #if random.random() > 0.5:
             #img_clean = np.flipud(img_clean)  # Flip up-down
 
-        # Add Gaussian noise
+    # Add Gaussian noise
         noise_level = np.random.uniform(self.noise_level_range[0], self.noise_level_range[1])
         noise = np.random.normal(0, noise_level / 255.0, img_clean.shape).astype(np.float32)
         img_noisy = img_clean + noise
@@ -104,6 +74,20 @@ class DenoisingDataset(Dataset):
 
         return img_noisy, img_clean, noise_level_map
     
+
+
+def load_images_from_folder(folder_path):
+    image_files = [f for f in os.listdir(folder_path) if f.endswith(('png', 'jpg', 'jpeg'))]
+    images = []
+    for filename in image_files:
+        img_path = os.path.join(folder_path, filename)
+        img = Image.open(img_path).convert('L') # Convertir en niveaux de gris
+        #img = Image.open(img_path).convert('RGB').convert('L')  # Conversion en RGB puis en niveaux de gris
+        images.append(img)
+    return images
+
+
+
 
 # Fonction pour afficher les images
 def show_images(clean_images, noisy_images, denoised_images=None):
@@ -157,57 +141,36 @@ def calculate_psnr(img1, img2, border=0):
     return 20 * math.log10(255.0 / math.sqrt(mse))
 
 
-# --------------------------------------------
-# SSIM
-# --------------------------------------------
-def calculate_ssim(img1, img2, border=0):
-    '''calculate SSIM
-    the same outputs as MATLAB's
-    img1, img2: [0, 255]
-    '''
-    #img1 = img1.squeeze()
-    #img2 = img2.squeeze()
-    if not img1.shape == img2.shape:
-        raise ValueError('Input images must have the same dimensions.')
-    h, w = img1.shape[:2]
-    img1 = img1[border:h-border, border:w-border]
-    img2 = img2[border:h-border, border:w-border]
+def calculate_psnr_overfit(img1, img2, border=0):
+    """
+    Calcul du PSNR pour des tenseurs PyTorch pendant l'entraînement.
+    
+    img1 et img2 doivent avoir la plage de valeurs [0, 255] et être des tenseurs PyTorch.
+    border est une marge facultative pour exclure des pixels du calcul.
+    """
+    # Vérification des dimensions
+    if img1.shape != img2.shape:
+        raise ValueError("Les dimensions des deux images doivent être identiques.")
 
-    if img1.ndim == 2:
-        return ssim(img1, img2)
-    elif img1.ndim == 3:
-        if img1.shape[2] == 3:
-            ssims = []
-            for i in range(3):
-                ssims.append(ssim(img1[:,:,i], img2[:,:,i]))
-            return np.array(ssims).mean()
-        elif img1.shape[2] == 1:
-            return ssim(np.squeeze(img1), np.squeeze(img2))
-    else:
-        raise ValueError('Wrong input image dimensions.')
+    # Retirer la bordure, si spécifié
+    h, w = img1.shape[-2:]  # Fonctionne pour des tenseurs avec (C, H, W) ou (H, W)
+    img1 = img1[..., border:h-border, border:w-border]
+    img2 = img2[..., border:h-border, border:w-border]
 
+    # Conversion au format float64
+    img1 = img1.to(torch.float64)
+    img2 = img2.to(torch.float64)
 
-def ssim(img1, img2):
-    C1 = (0.01 * 255)**2
-    C2 = (0.03 * 255)**2
+    # Calcul de la MSE
+    mse = torch.mean((img1 - img2) ** 2)
+    
+    # Gérer les cas particuliers où la MSE est 0 (images identiques)
+    if mse == 0:
+        return float("inf")
 
-    img1 = img1.astype(np.float64)
-    img2 = img2.astype(np.float64)
-    kernel = cv2.getGaussianKernel(11, 1.5)
-    window = np.outer(kernel, kernel.transpose())
-
-    mu1 = cv2.filter2D(img1, -1, window)[5:-5, 5:-5]  # valid
-    mu2 = cv2.filter2D(img2, -1, window)[5:-5, 5:-5]
-    mu1_sq = mu1**2
-    mu2_sq = mu2**2
-    mu1_mu2 = mu1 * mu2
-    sigma1_sq = cv2.filter2D(img1**2, -1, window)[5:-5, 5:-5] - mu1_sq
-    sigma2_sq = cv2.filter2D(img2**2, -1, window)[5:-5, 5:-5] - mu2_sq
-    sigma12 = cv2.filter2D(img1 * img2, -1, window)[5:-5, 5:-5] - mu1_mu2
-
-    ssim_map = ((2 * mu1_mu2 + C1) * (2 * sigma12 + C2)) / ((mu1_sq + mu2_sq + C1) *
-                                                            (sigma1_sq + sigma2_sq + C2))
-    return ssim_map.mean()
+    # Calcul du PSNR
+    psnr = 20 * torch.log10(255.0 / torch.sqrt(mse))
+    return psnr.item()  # Retourne le PSNR en format float standard
 
 
 if __name__ == '__main__':

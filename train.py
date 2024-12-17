@@ -2,6 +2,8 @@ import os
 import random
 import torch
 import torch.nn as nn
+from utils import load_images_from_folder,DenoisingDataset,load_image_paths,calculate_psnr_overfit
+
 
 # Training loop with dynamic learning rate adjustment and periodic weight saving
 def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda', save_dir="/home/onyxia/work"):
@@ -10,12 +12,10 @@ def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda',
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50000, gamma=0.5)
     criterion = nn.L1Loss()
 
-    # Convert the dataloader to a list for random access
-    dataloader_list = list(dataloader)
 
     for step in range(1, iterations + 1):
         # Select a random batch
-        noisy_imgs, clean_imgs = random.choice(dataloader_list)
+        noisy_imgs, clean_imgs,_ = next(iter(dataloader))
        
         noisy_imgs = noisy_imgs.to(torch.float32).to(device)
         clean_imgs = clean_imgs.to(torch.float32).to(device)
@@ -23,6 +23,7 @@ def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda',
         # Forward pass
         output = model(noisy_imgs)
         loss = criterion(output, clean_imgs)
+        psnr  = calculate_psnr_overfit(output,clean_imgs)
 
         # Backward pass and optimize
         optimizer.zero_grad()
@@ -35,7 +36,7 @@ def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda',
         # Print loss every 500 iterations
         if step % 500 == 0:
             current_lr = scheduler.get_last_lr()[0]
-            print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f}")
+            print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f},PSNR,{psnr}")
 
         if step % 5000 == 0:
             checkpoint_path = os.path.join(save_dir, f"scunet_iter_{step}.pth")
