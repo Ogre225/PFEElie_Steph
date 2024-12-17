@@ -15,7 +15,8 @@ def train_scunet(model, dataloader, lr=0.0001, iterations=800000, device='cuda',
 
     for step in range(1, iterations + 1):
         # Select a random batch
-        noisy_imgs, clean_imgs,_ = next(iter(dataloader))
+
+        noisy_imgs, clean_imgs, _ = next(iter(dataloader))
        
         noisy_imgs = noisy_imgs.to(torch.float32).to(device)
         clean_imgs = clean_imgs.to(torch.float32).to(device)
@@ -60,12 +61,9 @@ def train_drunet(model, dataloader, lr=0.0001, iterations=500000, device='cuda',
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100000, gamma=0.5)
     criterion = nn.L1Loss()
 
-    # Convert the dataloader to a list for random access
-    dataloader_list = list(dataloader)
-
     for step in range(1, iterations + 1):
-        # Select a random batch
-        noisy_imgs, clean_imgs, noise_level_map = random.choice(dataloader_list)
+        
+        noisy_imgs, clean_imgs, noise_level_map = next(iter(dataloader))
        
         noisy_imgs = noisy_imgs.to(device)
         clean_imgs = clean_imgs.to(device)
@@ -89,12 +87,12 @@ def train_drunet(model, dataloader, lr=0.0001, iterations=500000, device='cuda',
             print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f}")
 
         if step % 5000 == 0:
-            checkpoint_path = os.path.join(save_dir, f"scunet_iter_{step}.pth")
+            checkpoint_path = os.path.join(save_dir, f"drunet_iter_{step}.pth")
             torch.save(model.state_dict(), checkpoint_path)
             print(f"Weights saved at iteration {step} to {checkpoint_path}")
 
     # Save model weights after all iterations
-    final_checkpoint_path = os.path.join(save_dir, "drunet_final.pth")
+    final_checkpoint_path = os.path.join(save_dir, "drunet_final_1.pth")
     torch.save(model.state_dict(), final_checkpoint_path)
     print(f"Final model weights saved at {final_checkpoint_path}")
 
