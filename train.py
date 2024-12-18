@@ -92,7 +92,7 @@ def train_drunet(model, dataloader, lr=0.0001, iterations=500000, device='cuda',
             print(f"Weights saved at iteration {step} to {checkpoint_path}")
 
     # Save model weights after all iterations
-    final_checkpoint_path = os.path.join(save_dir, "drunet_final_1.pth")
+    final_checkpoint_path = os.path.join(save_dir, "drunet_final.pth")
     torch.save(model.state_dict(), final_checkpoint_path)
     print(f"Final model weights saved at {final_checkpoint_path}")
 

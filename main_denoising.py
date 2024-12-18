@@ -34,15 +34,15 @@ def calculate_psnr(img1, img2):
 def main():
     dataset_paths = ['C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/testsets/set12']
     image_paths = load_image_paths(dataset_paths)
-    sigma = 25  # Niveau de bruit
+    sigma = 50  # Niveau de bruit
 
     psnr_values = []  # Liste pour stocker les PSNR des images
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Charger le modèle
-    #model = UNetRes(in_nc=2,out_nc=1)
-    model = SCUNet(in_nc=1)
-    model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet_iter_5000.pth'))
+    model = UNetRes(in_nc=2,out_nc=1)
+    #model = SCUNet(in_nc=1)
+    model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/drunet_final.pth'))
     model = model.to(device)
     model.eval()  # Mode évaluation pour le modèle
 
@@ -51,8 +51,8 @@ def main():
         img_noisy, noise_map = noise_img(img, sigma)
         
         with torch.no_grad():
-            #denoised_img = model(img_noisy, noise_map)
-            denoised_img = model(img_noisy)
+            denoised_img = model(img_noisy, noise_map)
+            #denoised_img = model(img_noisy)
 
         # Calcul du PSNR entre l'image originale et l'image débruitée
         psnr_value = calculate_psnr(img, denoised_img)
@@ -68,3 +68,6 @@ if __name__ == "__main__":
     main()
 
 
+# bruit 15, psnr = 32,78
+# bruit 25, psnr = 30,44
+# bruit 50, psnr = 27,38
