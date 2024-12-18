@@ -11,7 +11,15 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import torch
 import math
+from zipfile import ZipFile
 
+
+
+def augmentation(x, k=0, inverse=False):
+    k = k % 8
+    if inverse: k = [0, 1, 6, 3, 4, 5, 2, 7][k]
+    if k % 2 == 1: x = torch.flip(x, dims=[2])
+    return torch.rot90(x, k=(k//2) % 4, dims=[1,2])
 
 
 # Load dataset
@@ -72,12 +80,19 @@ class DenoisingDataset(Dataset):
         img_noisy = torch.from_numpy(img_noisy).unsqueeze(0).float()
         noise_level_map = torch.full((1, self.patch_size, self.patch_size), noise_level / 255.0).float()
 
+
+        k = np.random.randint(8)
+
+        
+        img_clean = augmentation(img_clean, k)
+        img_noisy= augmentation(img_noisy, k)
+
         return img_noisy, img_clean, noise_level_map
     
 
 
 def load_images_from_folder(folder_path):
-    image_files = [f for f in os.listdir(folder_path) if f.endswith(('png', 'jpg', 'jpeg'))]
+    image_files = [f for f in os.listdir(folder_path) if f.endswith(('png', 'jpg', 'jpeg','bmp'))]
     images = []
     for filename in image_files:
         img_path = os.path.join(folder_path, filename)
@@ -86,6 +101,16 @@ def load_images_from_folder(folder_path):
         images.append(img)
     return images
 
+##Extraction
+
+def extract_datazip(
+    path_src='BSD400.zip',
+    path_dest='BSD400'
+):
+
+    with ZipFile(path_src, 'r') as zip_ref:
+        zip_ref.extractall()
+        return True
 
 
 
@@ -173,34 +198,10 @@ def calculate_psnr_overfit(img1, img2, border=0):
     return psnr.item()  # Retourne le PSNR en format float standard
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
 
-    # Load datasets (replace with your dataset paths)
-    dataset_paths = [
-            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/BDS400'
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/WaterlooB',
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/DIV2K',
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/Flick2K'
-        ]
-    image_paths = load_image_paths(dataset_paths)
-    patch_size = 128
-    noise_level_range = [0, 50]
-    batch_size=16
-    
-    dataset = DenoisingDataset(image_paths, patch_size, noise_level_range)
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    #extract_datazip('/home/onyxia/work/PFEElie_Steph/WaterlooED.zip',"/home/onyxia/work/PFEElie_Steph/WaterlooED")
 
-    data_iter = iter(dataloader)
-    noisy_images, clean_images, sigmas = next(data_iter)
-
-    print(f"Min: {clean_images.min()}, Max: {clean_images.max()}")
-    print(f"Min: {noisy_images.min()}, Max: {noisy_images.max()}")
-    print(f"Min: {sigmas.min()}, Max: {sigmas.max()}")
-
-
-
-    # Afficher quelques images propres et bruitées
-    show_images(clean_images, noisy_images)
 
 
 

@@ -8,7 +8,8 @@ def main(model_name, dataloader):
     if model_name == 'SCUNET':    
         model = SCUNet(in_nc=1)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_scunet(model, dataloader, device=device, iterations=5000)
+        model.load_state_dict(torch.load('/home/onyxia/work/scunet_final.pth', map_location=torch.device('cpu')))
+        model = train_scunet(model, dataloader, device=device ,iterations=25000)
 
 
     else:
@@ -19,11 +20,13 @@ def main(model_name, dataloader):
 
 if __name__ == '__main__':
 
+    #extract_datazip('waterlooED.zip',"waterlooED")
+
 
        # Load datasets (replace with your dataset paths)
     dataset_paths = [
-            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/BDS400'
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/WaterlooB',
+            '/home/onyxia/work/PFEElie_Steph/BDS400/real',
+            #'/home/onyxia/work/PFEElie_Steph/waterlooED',
             #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/DIV2K',
             #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/Flick2K'
         ]
