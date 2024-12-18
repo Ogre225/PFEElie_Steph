@@ -33,6 +33,11 @@ def load_image_paths(dataset_paths):
     return image_paths
 
 
+def augmentation(x, k=0, inverse=False):
+    k = k % 8
+    if inverse: k = [0, 1, 6, 3, 4, 5, 2, 7][k]
+    if k % 2 == 1: x = torch.flip(x, dims=[2])
+    return torch.rot90(x, k=(k//2) % 4, dims=[1,2])
 
 
 # Custom Dataset class to load and apply noise to grayscale images
@@ -46,6 +51,7 @@ class DenoisingDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, idx):
+        img = self.image_paths[np.random.choice(len(self.image_paths))]
         # Load image in grayscale mode
         img = Image.open(self.image_paths[idx]).convert('L')  # 'L' mode is for grayscale
         img = np.array(img, dtype=np.float32) / 255.0
@@ -79,7 +85,6 @@ class DenoisingDataset(Dataset):
         img_clean = torch.from_numpy(img_clean).unsqueeze(0).float()  # Add channel dimension
         img_noisy = torch.from_numpy(img_noisy).unsqueeze(0).float()
         noise_level_map = torch.full((1, self.patch_size, self.patch_size), noise_level / 255.0).float()
-
 
         k = np.random.randint(8)
 
