@@ -1,5 +1,6 @@
 from model.scunet import SCUNet
 from model.drunet import UNetRes
+from model.scunet_noise_map import SCUNet2
 from train import train_drunet, train_scunet
 from utils import *
 
@@ -11,6 +12,12 @@ def main(model_name, dataloader):
         model.load_state_dict(torch.load('/home/onyxia/work/scunet_final.pth', map_location=torch.device('cpu')))
         model = train_scunet(model, dataloader, device=device ,iterations=25000)
 
+    
+    if model_name == 'SCUNET2':    
+        model = SCUNet2(in_nc=2)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        model.load_state_dict(torch.load('/home/onyxia/work/scunet2_final.pth', map_location=torch.device('cpu')))
+        model = train_scunet(model, dataloader, device=device ,iterations=25000)
 
     else:
         model = UNetRes(in_nc=2)

@@ -163,10 +163,10 @@ class ConvTransBlock(nn.Module):
         return x
 
 
-class SCUNet(nn.Module):
+class SCUNet2(nn.Module):
 
     def __init__(self, in_nc=3, config=[2,2,2,2,2,2,2], dim=64, drop_path_rate=0.0, input_resolution=256):
-        super(SCUNet, self).__init__()
+        super(SCUNet2, self).__init__()
         self.config = config
         self.dim = dim
         self.head_dim = 32
@@ -261,7 +261,7 @@ class SCUNet(nn.Module):
 if __name__ == '__main__':
 
     # torch.cuda.empty_cache()
-    net = SCUNet(in_nc=2)   # 2 canaux : img + noise
+    net = SCUNet2(in_nc=2)   # 2 canaux : img + noise
 
     x = torch.randn((2, 1, 64, 128)) # img en niveau de gris : 1 canal
     noise = torch.randn((2, 1, 64, 128)) # carte de bruit avec 1 canal
