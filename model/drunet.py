@@ -1,7 +1,7 @@
 # Modèle Drunet
 import torch
 import torch.nn as nn
-import model.basicblock as B
+import basicblock as B
 import numpy as np
 #from utils import test_onesplit, test_pad
 
@@ -64,9 +64,9 @@ class UNetRes(nn.Module):
 
 if __name__ == '__main__':
     x = torch.rand(1,1,256,256)
-#    net = UNet(act_mode='BR')
-    net = UNetRes()
+    noise_level_map = torch.rand(1, 1, 256, 256)  # Carte de bruit aléatoire
+    net = UNetRes(in_nc=2)
     net.eval()
     with torch.no_grad():
-        y = net(x)
+        y = net(x, noise_level_map)
     print(y.size())
