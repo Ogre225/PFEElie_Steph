@@ -17,4 +17,4 @@ set12/
 *.mat
 *.npy
 .DS_Store
-
+*.bmp

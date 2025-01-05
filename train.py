@@ -118,6 +118,8 @@ def train_scunet2(model, dataloader, lr=0.0001, iterations=5000, device='cuda',s
         # Forward pass
         output = model(noisy_imgs, noise_level_map)
         loss = criterion(output, clean_imgs)
+        psnr  = calculate_psnr_overfit(output,clean_imgs)
+
 
         # Backward pass and optimize
         optimizer.zero_grad()
@@ -130,7 +132,7 @@ def train_scunet2(model, dataloader, lr=0.0001, iterations=5000, device='cuda',s
         # Print loss every 500 iterations
         if step % 500 == 0:
             current_lr = scheduler.get_last_lr()[0]
-            print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f}")
+            print(f"Iteration [{step}/{iterations}], Loss: {loss.item():.4f}, Learning Rate: {current_lr:.6f},PSNR,{psnr}")
 
         if step % 5000 == 0:
             checkpoint_path = os.path.join(save_dir, f"drunet_iter_{step}.pth")

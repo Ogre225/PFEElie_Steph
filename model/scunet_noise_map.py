@@ -165,10 +165,11 @@ class ConvTransBlock(nn.Module):
 
 class SCUNet2(nn.Module):
 
-    def __init__(self, in_nc=3, config=[2,2,2,2,2,2,2], dim=64, drop_path_rate=0.0, input_resolution=256):
+    def __init__(self, in_nc=3,out_nc=1,config=[2,2,2,2,2,2,2], dim=64, drop_path_rate=0.0, input_resolution=256):
         super(SCUNet2, self).__init__()
         self.config = config
         self.dim = dim
+        self.out_nc=out_nc
         self.head_dim = 32
         self.window_size = 8
 
@@ -211,7 +212,7 @@ class SCUNet2(nn.Module):
                     [ConvTransBlock(dim//2, dim//2, self.head_dim, self.window_size, dpr[i+begin], 'W' if not i%2 else 'SW', input_resolution) 
                       for i in range(config[6])]
 
-        self.m_tail = [nn.Conv2d(dim, in_nc, 3, 1, 1, bias=False)]
+        self.m_tail = [nn.Conv2d(dim, out_nc, 3, 1, 1, bias=False)]
 
         self.m_head = nn.Sequential(*self.m_head)
         self.m_down1 = nn.Sequential(*self.m_down1)
@@ -261,9 +262,11 @@ class SCUNet2(nn.Module):
 if __name__ == '__main__':
 
     # torch.cuda.empty_cache()
-    net = SCUNet2(in_nc=2)   # 2 canaux : img + noise
+    net = SCUNet2(in_nc=3,out_nc=1)   # 2 canaux : img + noise
 
-    x = torch.randn((2, 1, 64, 128)) # img en niveau de gris : 1 canal
-    noise = torch.randn((2, 1, 64, 128)) # carte de bruit avec 1 canal
-    x = net(x,noise)
-    print(x.shape)
+    x = torch.randn((1, 1, 64, 128)) # img en niveau de gris : 1 canal
+    noise = torch.randn((1, 2, 64, 128)) # carte de bruit avec 1 canal
+    y = net(x,noise)
+    print(y.shape)
+
+

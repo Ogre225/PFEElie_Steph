@@ -1,7 +1,8 @@
 # Modèle Drunet
 import torch
 import torch.nn as nn
-import basicblock as B
+from . import basicblock as B
+#import basicblock as B
 import numpy as np
 #from utils import test_onesplit, test_pad
 
