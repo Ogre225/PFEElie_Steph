@@ -1,8 +1,9 @@
 from model.scunet import SCUNet
 from model.drunet import UNetRes
 from model.scunet_noise_map import SCUNet2
-from train import train_drunet, train_scunet,train_scunet2
+from train import train_drunet, train_scunet,train_scunet2,train_vst
 from utils import *
+
 
 def main(model_name, dataloader):
     # Define the model
@@ -16,13 +17,21 @@ def main(model_name, dataloader):
     if model_name == 'SCUNET2':    
         model = SCUNet2(in_nc=2)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        #model.load_state_dict(torch.load('/home/onyxia/work/scunet2_final.pth', map_location=torch.device('cpu')))
-        model = train_scunet2(model, dataloader, device=device ,iterations=25000)
+        model.load_state_dict(torch.load('/home/onyxia/work/scunet2_final.pth',weights_only=True, map_location=torch.device('cpu')))
+        model = train_scunet2(model, dataloader, device=device ,iterations=200000,lr=0.0001/2)
+
+
+    if model_name == 'vst':    
+        model = SCUNet2(in_nc=2)
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        model.load_state_dict(torch.load('/home/onyxia/work/scunet2_iter_200000.pth',weights_only=True, map_location=torch.device(device)))
+        model = train_scunet2(model, dataloader, device=device ,iterations=5000)
+        model.eval()
 
     else:
         model = UNetRes(in_nc=2)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        model = train_drunet(model, dataloader, device=device, iterations=25000, save_dir = "C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training")
+        model = train_drunet(model, dataloader, device=device, iterations=25000)
 
 
 if __name__ == '__main__':
