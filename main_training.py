@@ -16,8 +16,8 @@ def main(model_name, dataloader):
     if model_name == 'SCUNET2':    
         model = SCUNet2(in_nc=2)
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        #model.load_state_dict(torch.load('/home/onyxia/work/scunet2_final.pth', map_location=torch.device('cpu')))
-        model = train_scunet2(model, dataloader, device=device ,iterations=25000)
+        #model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet2_final.pth', map_location=torch.device('cpu')))
+        model = train_scunet2(model, dataloader, device=device ,iterations=200000, save_dir = "C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training")
 
     else:
         model = UNetRes(in_nc=2)
@@ -32,20 +32,20 @@ if __name__ == '__main__':
 
        # Load datasets (replace with your dataset paths)
     dataset_paths = [
-            '/home/onyxia/work/PFEElie_Steph/BDS400/real',
-            #'/home/onyxia/work/PFEElie_Steph/waterlooED',
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/DIV2K',
-            #'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/Flick2K'
+            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/BDS400',
+            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/waterlooED',
+            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/DIV2K',
+            'C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/datasets/Flick2K'
         ]
 
 
     dataset_paths_steph = [
-        '/home/onyxia/work/PFEElie_Steph/Datasets/train/BDS400',
-        '/home/onyxia/work/PFEElie_Steph/Datasets/train/waterlooED',
-        '/home/onyxia/work/PFEElie_Steph/Datasets/train/DIV2K',
-        '/home/onyxia/work/PFEElie_Steph/Datasets/train/Flick2K'
+        #'/home/onyxia/work/PFEElie_Steph/Datasets/train/BDS400',
+        #'/home/onyxia/work/PFEElie_Steph/Datasets/train/waterlooED',
+        #'/home/onyxia/work/PFEElie_Steph/Datasets/train/DIV2K',
+        #'/home/onyxia/work/PFEElie_Steph/Datasets/train/Flick2K'
     ]
-    image_paths = load_image_paths(dataset_paths_steph)
+    image_paths = load_image_paths(dataset_paths)
     patch_size = 128
     noise_level_range = [0, 50]
 

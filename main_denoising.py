@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 from model.drunet import UNetRes
 from model.scunet import SCUNet
+from model.scunet_noise_map import SCUNet2
 
 def load_image_paths(dataset_paths):
     image_paths = []
@@ -32,17 +33,18 @@ def calculate_psnr(img1, img2):
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
 def main():
-    dataset_paths = ['/home/onyxia/work/PFEElie_Steph/set12/real']
+    dataset_paths_steph = ['/home/onyxia/work/PFEElie_Steph/set12/real']
+    dataset_paths = ['C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/testsets/set12']
     image_paths = load_image_paths(dataset_paths)
-    sigma = 50  # Niveau de bruit
+    sigma = 25  # Niveau de bruit
 
     psnr_values = []  # Liste pour stocker les PSNR des images
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Charger le modèle
     #model = UNetRes(in_nc=2,out_nc=1)
-    model = SCUNet(in_nc=1)
-    model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet_iter_5000.pth'))
+    model = SCUNet2(in_nc=2)
+    model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet2_final.pth'))
     model = model.to(device)
     model.eval()  # Mode évaluation pour le modèle
 
@@ -67,7 +69,7 @@ def main():
 if __name__ == "__main__":
     main()
 
-
+### Drunet
 # bruit 15, psnr = 32,78
 # bruit 25, psnr = 30,44
 # bruit 50, psnr = 27,38
