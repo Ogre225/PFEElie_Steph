@@ -140,24 +140,23 @@ def train_scunet2(model, dataloader, lr=0.0001, iterations=5000, device='cuda',s
 
         if step % 5000 == 0:
             checkpoint_path = os.path.join(save_dir, f"scunet2_iter_{step}.pth")
+            checkpoint_path2 = os.path.join(save_dir, f"scunet2_adam_iter_{step}.pth")
             torch.save(model.state_dict(), checkpoint_path)
+            torch.save(optimizer.state_dict(), checkpoint_path2)
             print(f"Weights saved at iteration {step} to {checkpoint_path}")
 
     # Save model weights after all iterations
     final_checkpoint_path = os.path.join(save_dir, "scunet2_final.pth")
+    final_checkpoint_path2 = os.path.join(save_dir, "scunet2_adam_final.pth")
     torch.save(model.state_dict(), final_checkpoint_path)
+    torch.save(optimizer.state_dict(), final_checkpoint_path2)
     print(f"Final model weights saved at {final_checkpoint_path}")
 
     print("Training complete.")
 
 
 
-
 def train_vst(model,dataloader, lr=0.0001, iterations=5000, device='cuda',save_dir="/home/onyxia/work"):
-
-
-
-
 
 
     model = model.to(device)
