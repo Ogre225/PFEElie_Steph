@@ -33,9 +33,14 @@ def calculate_psnr(img1, img2):
     return 20 * torch.log10(1.0 / torch.sqrt(mse))
 
 def main():
-    dataset_paths_steph = ['/home/onyxia/work/PFEElie_Steph/set12/real']
-    dataset_paths = ['C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/DPIR/testsets/set12']
+
+
+    path_steph='/home/onyxia/work/scunet2_final.pth'
+    path_elie='C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet2_final.pth'
+    dataset_paths = ['/home/onyxia/work/PFEElie_Steph/Datasets/test/set12/set12']
+
     image_paths = load_image_paths(dataset_paths)
+    print(image_paths)
     sigma = 25  # Niveau de bruit
 
     psnr_values = []  # Liste pour stocker les PSNR des images
@@ -43,15 +48,16 @@ def main():
 
     # Charger le modèle
     #model = UNetRes(in_nc=2,out_nc=1)
-    model = SCUNet2(in_nc=2)
-    model.load_state_dict(torch.load('C:/Users/elieg/Documents/ENSAI_3A/PFE/Code/own_training/scunet2_final.pth'))
+    model = SCUNet2(in_nc=2,out_nc=1)
+    #model = SCUNet(in_nc=1)
+
+    model.load_state_dict(torch.load(path_steph,weights_only=True))
     model = model.to(device)
     model.eval()  # Mode évaluation pour le modèle
 
     for img_path in image_paths:
         img = load_img(img_path).to(device)
         img_noisy, noise_map = noise_img(img, sigma)
-        
         with torch.no_grad():
             denoised_img = model(img_noisy, noise_map)
             #denoised_img = model(img_noisy)
@@ -69,7 +75,26 @@ def main():
 if __name__ == "__main__":
     main()
 
-### Drunet
+### Sur 25k iterations
+
+###Drunet
 # bruit 15, psnr = 32,78
 # bruit 25, psnr = 30,44
 # bruit 50, psnr = 27,38
+
+
+###SCUNET
+# bruit 15, psnr = 32,57
+# bruit 25, psnr = 30,29
+# bruit 50, psnr = 27,19
+
+
+
+
+###SCUNET avec noise_map
+# bruit 15, psnr = 32,62
+# bruit 25, psnr = 30,34
+# bruit 50, psnr = 27,22
+
+
+#### bruit 25, psnr = 30,74
